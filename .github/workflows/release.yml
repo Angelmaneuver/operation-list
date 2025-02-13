@@ -1,16 +1,9 @@
 name: Release CLI to the GitHub Release
 
-permissions:
-  contents: write
-
 on:
-  workflow_dispatch:
-    inputs:
-      method:
-        description: |
-          Which number to increment in the semantic versioning.
-          Set 'major', 'minor' or 'patch'.
-        required: true
+  push:
+    tags:
+      - v*
 
 env:
   PROJECT_NAME: operation-list
@@ -38,13 +31,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Bump-up Semantic Version
-        id: vertag
-        uses: kyoh86/git-vertag-action@v1
-        with:
-          # method: "major", "minor" or "patch" to update tag with semver
-          method: "${{ github.event.inputs.method }}"
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1

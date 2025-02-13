@@ -1,5 +1,8 @@
 name: Release CLI to the GitHub Release
 
+permissions:
+  contents: write
+
 on:
   push:
     tags:
@@ -16,17 +19,7 @@ jobs:
       matrix:
         job:
           - { os: windows-latest , target: x86_64-pc-windows-msvc, use-cross: false , extension: .exe }
-    permissions:
-      contents: write
     steps:
-      - name: Check Actor
-        if: github.actor != 'Angelmaneuver'
-        run: exit 1
-
-      - name: Check Branch
-        if: github.ref != 'refs/heads/main'
-        run: exit 1
-
       - name: Checkout Sources
         uses: actions/checkout@v4
         with:

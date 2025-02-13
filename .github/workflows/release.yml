@@ -1,0 +1,70 @@
+name: Release CLI to the GitHub Release
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      method:
+        description: |
+          Which number to increment in the semantic versioning.
+          Set 'major', 'minor' or 'patch'.
+        required: true
+
+env:
+  PROJECT_NAME: operation-list
+
+jobs:
+  build:
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { os: windows-latest , target: x86_64-pc-windows-msvc, use-cross: false , extension: .exe }
+    permissions:
+      contents: write
+    steps:
+      - name: Check Actor
+        if: github.actor != 'Angelmaneuver'
+        run: exit 1
+
+      - name: Check Branch
+        if: github.ref != 'refs/heads/main'
+        run: exit 1
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump-up Semantic Version
+        id: vertag
+        uses: kyoh86/git-vertag-action@v1
+        with:
+          # method: "major", "minor" or "patch" to update tag with semver
+          method: "${{ github.event.inputs.method }}"
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.job.target }}
+          override: true
+          profile: minimal
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.job.use-cross }}
+          command: build
+          args: --release --target ${{ matrix.job.target }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}${{ matrix.job.extension }}

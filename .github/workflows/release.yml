@@ -9,7 +9,7 @@ on:
       - v*
 
 env:
-  PROJECT_NAME: operation-list
+  PROJECT_NAME: operationlist
 
 jobs:
   build:
